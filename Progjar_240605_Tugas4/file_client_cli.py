@@ -64,26 +64,31 @@ def remote_get(filename=""):
         print("Gagal GET")
         return False
 
-def remote_post(filename=""):
-    command_str=f"POST {filename}"
-    hasil = send_command(command_str)
-    if (hasil['status']=='OK'):
-        #proses file dalam bentuk base64 ke bentuk bytes
-        namafile= hasil['data_namafile']
-        url = 'http://mesin1:60001/lab/tree/progjar/progjar4a'
-        fp = {'file': open(f"{namafile}", 'rb')}
-        response = requests.post(url, files=fp)
-        print(hasil['data_response'])
-        fp.close()
-        return True
-    else:
-        print("Gagal POST")
+def remote_post(local_filepath="", remote_filename=""):
+    try:
+        with open(local_filepath, 'rb') as fp:
+            file_content = fp.read()
+        encoded_content = base64.b64encode(file_content).decode()
+        command_str = json.dumps({
+            "command": "POST",
+            "filename": remote_filename,
+            "data_file": encoded_content
+        })
+        hasil = send_command(command_str)
+        if hasil['status'] == 'OK':
+            print(f"File '{local_filepath}' uploaded successfully as '{remote_filename}'.")
+            return True
+        else:
+            print("Gagal POST")
+            return False
+    except Exception as e:
+        logging.warning(f"error during file upload: {str(e)}")
         return False
 
 
 if __name__=='__main__':
     server_address=('172.16.16.101',8889)
-    remote_list()
-    remote_get('donalbebek.jpg')
-    remote_post('pokijan.jpg')
+    # remote_list()
+    # remote_get('donalbebek.jpg')
+    # remote_post('pokijan.jpg')
 
