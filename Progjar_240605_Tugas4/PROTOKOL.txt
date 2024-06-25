@@ -42,8 +42,20 @@ GET
 POST
 * TUJUAN: untuk mengunggah file dari mesin lokal, yang telah di-mount ke kontainer docker, ke mesin di kontainer docker
 * PARAMETER: 
-  - PARAMETER1 : alamat file di direktori yang telah di-mount
+  - PARAMETER1 : nama file di direktori yang telah di-mount
   - PARAMETER2 : nama file baru yang akan digunakan setelah diunggah
+* RESULT:
+- BERHASIL:
+  - status: OK
+  - data : pesan sukses
+- GAGAL:
+  - status: ERROR
+  - data : pesan kesalahan
+
+DELETE
+* TUJUAN: untuk menghapus file dengan menyebutkan nama file dalam parameter
+* PARAMETER: 
+  - PARAMETER : nama file
 * RESULT:
 - BERHASIL:
   - status: OK

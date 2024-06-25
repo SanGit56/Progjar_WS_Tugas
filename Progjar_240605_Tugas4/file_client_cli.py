@@ -64,31 +64,31 @@ def remote_get(filename=""):
         print("Gagal GET")
         return False
 
-def remote_post(local_filepath="", remote_filename=""):
-    try:
-        with open(local_filepath, 'rb') as fp:
-            file_content = fp.read()
-        encoded_content = base64.b64encode(file_content).decode()
-        command_str = json.dumps({
-            "command": "POST",
-            "filename": remote_filename,
-            "data_file": encoded_content
-        })
-        hasil = send_command(command_str)
-        if hasil['status'] == 'OK':
-            print(f"File '{local_filepath}' uploaded successfully as '{remote_filename}'.")
-            return True
-        else:
-            print("Gagal POST")
-            return False
-    except Exception as e:
-        logging.warning(f"error during file upload: {str(e)}")
+def remote_post(local_filepath="", destination_filename=""):
+    command_str=f"POST {local_filepath} {destination_filename}"
+    hasil = send_command(command_str)
+
+    if hasil['status'] == 'OK':
+        print(hasil['data'])
+        return True
+    else:
+        print("Gagal POST")
         return False
 
+def remote_delete(filename=""):
+    command_str = f"DELETE {filename}"
+    hasil = send_command(command_str)
+    if hasil['status'] == 'OK':
+        print(hasil['data'])
+        return True
+    else:
+        print("Gagal DEL")
+        return False
 
 if __name__=='__main__':
     server_address=('172.16.16.101',8889)
     # remote_list()
-    # remote_get('donalbebek.jpg')
-    # remote_post('pokijan.jpg')
+    # remote_get('unggah.txt')
+    # remote_post('unggah.txt', 'berhasil.txt')
+    # remote_delete('pokijan1.jpg')
 
