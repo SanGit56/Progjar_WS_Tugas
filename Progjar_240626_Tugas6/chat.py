@@ -4,6 +4,33 @@ import json
 import uuid
 import logging
 from queue import  Queue
+import threading 
+import socket
+
+class RealmCommunicationThread(threading.Thread):
+	def __init__(self, chat, target_realm_address, target_realm_port):
+		self.chat = chat
+		self.target_realm_address = target_realm_address
+		self.target_realm_port = target_realm_port
+		self.queue = Queue()  # Queue for outgoing messages to the other realm
+		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		threading.Thread.__init__(self)
+	def run(self):
+		self.sock.connect((self.target_realm_address, self.target_realm_port))
+		while True:
+			# Menerima data dari realm lain
+			data = self.sock.recv(32)
+			if data:
+				command = data.decode()
+				response = self.chat.proses(command)
+				# Mengirim balasan ke realm lain
+				self.sock.sendall(json.dumps(response).encode())
+			# Check if there are messages to be sent
+			while not self.queue.empty():
+				msg = self.queue.get()
+				self.sock.sendall(json.dumps(msg).encode())
+	def put(self, msg):
+		self.queue.put(msg)
 
 class Chat:
 	def __init__(self):
@@ -12,6 +39,26 @@ class Chat:
 		self.users['messi']={ 'nama': 'Lionel Messi', 'negara': 'Argentina', 'password': 'surabaya', 'incoming' : {}, 'outgoing': {}}
 		self.users['henderson']={ 'nama': 'Jordan Henderson', 'negara': 'Inggris', 'password': 'surabaya', 'incoming': {}, 'outgoing': {}}
 		self.users['lineker']={ 'nama': 'Gary Lineker', 'negara': 'Inggris', 'password': 'surabaya','incoming': {}, 'outgoing':{}}
+
+		self.realm = None
+		target_realm_address = '172.16.16.101'
+		target_realm_port = 70001
+		self.realm = RealmCommunicationThread(self, target_realm_address, target_realm_port)
+		self.realm.start()
+
+		print("Using __dict__:")
+		print(self.realm.__dict__)
+
+		print("\nUsing vars():")
+		print(vars(self.realm))
+
+		print("\nUsing dir():")
+		print(dir(self.realm))
+
+		print("\nUsing pprint:")
+		from pprint import pprint
+		pprint(vars(self.realm))
+
 	def proses(self,data):
 		j=data.split(" ")
 		try:
@@ -136,17 +183,11 @@ if __name__=="__main__":
 	j = Chat()
 	sesi = j.proses("auth messi surabaya")
 	print(sesi)
-	#sesi = j.autentikasi_user('messi','surabaya')
-	#print sesi
 	tokenid = sesi['tokenid']
+
 	print(j.proses("send {} henderson hello gimana kabarnya son " . format(tokenid)))
 	print(j.proses("send {} lineker hello gimana kabarnya lin " . format(tokenid)))
-
 	print(j.proses("sendgroup {} pemain_bola gol berapa?" . format(tokenid)))
-
-	#print j.send_message(tokenid,'messi','henderson','hello son')
-	#print j.send_message(tokenid,'henderson','messi','hello si')
-	#print j.send_message(tokenid,'lineker','messi','hello si dari lineker')
 
 
 	print("isi mailbox dari messi")
