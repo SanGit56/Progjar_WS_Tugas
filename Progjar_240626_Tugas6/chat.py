@@ -84,7 +84,7 @@ class Chat:
 				return self.get_inbox(username)
 			elif (command=='sendgroup'):
 				sessionid = j[1].strip()
-				group_name = j[2]
+				group_name = j[2].strip()
 				message=""
 				for m in j[3:]:
 					message="{} {}" . format(message,m)
@@ -100,6 +100,15 @@ class Chat:
 					message = "{} {}".format(message, w)
 				logging.warning("SENDREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], usernameto, realm_name))
 				return self.send_realm_message(sessionid, usernameto, message)
+			elif (command == 'sendgrouprealm'):
+				sessionid = j[1].strip()
+				realm_name = j[2].strip()
+				group_name = j[3].strip()
+				message = ""
+				for w in j[4:]:
+					message = "{} {}".format(message, w)
+				logging.warning("SENDGROUPREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], group_name, realm_name))
+				return self.send_group_realm_message(sessionid, group_name, message)
 			else:
 				return {'status': 'ERROR', 'message': '**Protocol Tidak Benar'}
 		except KeyError:
@@ -197,6 +206,24 @@ class Chat:
 		self.realm.queue.put(message)
 		return {'status': 'OK', 'message': 'Message Sent to Realm'}
 
+	def send_group_realm_message(self, sessionid, group_name, message):
+		if sessionid not in self.sessions:
+			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
+		
+		username_from = self.sessions[sessionid]['username']
+
+		if group_name == "pemain_bola":
+			pemain_bola = ['messi', 'henderson', 'lineker']
+		
+			for username_dest in pemain_bola:
+				if username_dest != username_from:
+					message = { 'msg_from': username_from, 'msg_on_group': group_name, 'msg': message }
+					
+					self.realm.put(message)
+					self.realm.queue.put(message)
+
+		return {'status': 'OK', 'message': 'Message Sent to Group in Realm'}
+
 if __name__=="__main__":
 	j = Chat()
 	sesi = j.proses("auth messi surabaya")
@@ -208,8 +235,9 @@ if __name__=="__main__":
 
 	print(j.proses("inbox {}" . format(tokenid)))
 
-	print(j.proses("sendrealm {} {} lineker halo alien" . format(tokenid, j.realm._name)))
+	print(j.proses("sendrealm {} {} henderson halo atlet" . format(tokenid, j.realm._name)))
+	print(j.proses("sendgrouprealm {} {} pemain_bola halo para atlet" . format(tokenid, j.realm._name)))
 
-	print(j.proses("auth lineker surabaya"))
+	print(j.proses("auth henderson surabaya"))
 	tokenid = sesi['tokenid']
 	print(j.proses("inbox {}" . format(tokenid)))

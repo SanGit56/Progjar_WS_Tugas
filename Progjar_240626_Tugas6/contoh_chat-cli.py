@@ -47,13 +47,13 @@ class ChatClient:
             #     for w in j[3:]:
             #         message = "{} {}".format(message, w)
             #     return self.send_realm_message(realm_id, username_to, message)
-            elif (command=='sendgrouprealm'):
-                realm_id = j[1].strip()
-                group_usernames = j[2].strip()
-                message=""
-                for w in j[3:]:
-                    message="{} {}" . format(message,w)
-                return self.send_group_realm_message(realm_id, group_usernames,message)
+            # elif (command=='sendgrouprealm'):
+            #     realm_id = j[1].strip()
+            #     group_usernames = j[2].strip()
+            #     message=""
+            #     for w in j[3:]:
+            #         message="{} {}" . format(message,w)
+            #     return self.send_group_realm_message(realm_id, group_usernames,message)
             elif (command == 'getrealminbox'):
                 realm_id = j[1].strip()
                 return self.get_realm_inbox(realm_id)
@@ -135,16 +135,16 @@ class ChatClient:
     #     else:
     #         return "Error, {}".format(result['message'])
         
-    def send_group_realm_message(self, realm_id, group_usernames, message):
-        if self.tokenid=="":
-            return "Error, not authorized"
-        string="sendgrouprealm {} {} {} {} \r\n" . format(self.tokenid, realm_id, ','.join(group_usernames), message)
-        print(string)
-        result = self.sendstring(string)
-        if result['status']=='OK':
-            return "message sent to group {} in realm {}" .format(group_usernames, realm_id)
-        else:
-            return "Error {}".format(result['message'])
+    # def send_group_realm_message(self, realm_id, group_usernames, message):
+    #     if self.tokenid=="":
+    #         return "Error, not authorized"
+    #     string="sendgrouprealm {} {} {} {} \r\n" . format(self.tokenid, realm_id, ','.join(group_usernames), message)
+    #     print(string)
+    #     result = self.sendstring(string)
+    #     if result['status']=='OK':
+    #         return "message sent to group {} in realm {}" .format(group_usernames, realm_id)
+    #     else:
+    #         return "Error {}".format(result['message'])
 
     def get_realm_inbox(self, realm_id):
         if (self.tokenid==""):

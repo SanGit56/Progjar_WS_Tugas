@@ -43,6 +43,13 @@ class ChatClient:
                 for w in j[3:]:
                     message = "{} {}".format(message, w)
                 return self.send_realm_message(realm_name, username_to, message)
+            elif (command=='sendgrouprealm'):
+                realm_name = j[1].strip()
+                group_name = j[2].strip()
+                message=""
+                for w in j[3:]:
+                    message="{} {}" . format(message,w)
+                return self.send_group_realm_message(realm_name, group_name,message)
             else:
                 return "*Maaf, command tidak benar"
         except IndexError:
@@ -104,12 +111,23 @@ class ChatClient:
     def send_realm_message(self, realm_name, username_to, message):
         if (self.tokenid==""):
             return "Error, not authorized"
-        string="sendrealm {} {} {} \r\n" . format(self.tokenid, realm_name, username_to, message)
+        string="sendrealm {} {} {} {} \r\n" . format(self.tokenid, realm_name, username_to, message)
         result = self.sendstring(string)
         if result['status']=='OK':
             return "Message sent to realm {}".format(realm_name)
         else:
             return "Error, {}".format(result['message'])
+
+    def send_group_realm_message(self, realm_name, group_name,message):
+        if self.tokenid=="":
+            return "Error, not authorized"
+        string="sendgrouprealm {} {} {} {} \r\n" . format(self.tokenid, realm_name, group_name, message)
+        print(string)
+        result = self.sendstring(string)
+        if result['status']=='OK':
+            return "message sent to group {} in realm {}" .format(group_name, realm_name)
+        else:
+            return "Error {}".format(result['message'])
 
 if __name__=="__main__":
     cc = ChatClient()
@@ -120,7 +138,7 @@ if __name__=="__main__":
     # auth messi surabaya
     # send henderson gimana kabar son?
     # sendgroup pemain_bola buat gol berapa?
-    # sendrealm henderson naturalisasi?
+    # sendrealm Thread_1 henderson naturalisasi?
+    # sendgrouprealm Thread_1 pemain_bola berapa pemain asing?
     # auth henderson surabaya
     # inbox
-    # pesan yang dikirim pake sendrealm ga ada di inbox
