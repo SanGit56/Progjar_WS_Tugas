@@ -42,22 +42,22 @@ class Chat:
 
 		self.realm = None
 		target_realm_address = '172.16.16.101'
-		target_realm_port = 70001
+		target_realm_port = 65001
 		self.realm = RealmCommunicationThread(self, target_realm_address, target_realm_port)
 		self.realm.start()
 
-		print("Using __dict__:")
-		print(self.realm.__dict__)
+		# print("Using __dict__:")
+		# print(self.realm.__dict__)
 
-		print("\nUsing vars():")
-		print(vars(self.realm))
+		# print("\nUsing vars():")
+		# print(vars(self.realm))
 
-		print("\nUsing dir():")
-		print(dir(self.realm))
+		# print("\nUsing dir():")
+		# print(dir(self.realm))
 
-		print("\nUsing pprint:")
-		from pprint import pprint
-		pprint(vars(self.realm))
+		# print("\nUsing pprint:")
+		# from pprint import pprint
+		# pprint(vars(self.realm))
 
 	def proses(self,data):
 		j=data.split(" ")
@@ -91,6 +91,15 @@ class Chat:
 				usernamefrom = self.sessions[sessionid]['username']
 				logging.warning("SEND: session {} send message from {} to {}" . format(sessionid, usernamefrom,group_name))
 				return self.send_group_message(sessionid,usernamefrom,group_name,message)
+			elif (command == 'sendrealm'):
+				sessionid = j[1].strip()
+				realm_name = j[2].strip()
+				usernameto = j[3].strip()
+				message = ""
+				for w in j[4:]:
+					message = "{} {}".format(message, w)
+				logging.warning("SENDREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], usernameto, realm_name))
+				return self.send_realm_message(sessionid, usernameto, message)
 			else:
 				return {'status': 'ERROR', 'message': '**Protocol Tidak Benar'}
 		except KeyError:
@@ -178,6 +187,15 @@ class Chat:
 
 		return {'status': 'OK', 'message': 'Message Sent'}
 
+	def send_realm_message(self, sessionid, username_to, message):
+		if (sessionid not in self.sessions):
+			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
+		
+		username_from = self.sessions[sessionid]['username']
+		message = { 'msg_from': username_from, 'msg_to': username_to, 'msg': message }
+		self.realm.put(message)
+		self.realm.queue.put(message)
+		return {'status': 'OK', 'message': 'Message Sent to Realm'}
 
 if __name__=="__main__":
 	j = Chat()
@@ -186,13 +204,12 @@ if __name__=="__main__":
 	tokenid = sesi['tokenid']
 
 	print(j.proses("send {} henderson hello gimana kabarnya son " . format(tokenid)))
-	print(j.proses("send {} lineker hello gimana kabarnya lin " . format(tokenid)))
 	print(j.proses("sendgroup {} pemain_bola gol berapa?" . format(tokenid)))
 
+	print(j.proses("inbox {}" . format(tokenid)))
 
-	print("isi mailbox dari messi")
-	print(j.get_inbox('messi'))
-	print("isi mailbox dari lineker")
-	print(j.get_inbox('lineker'))
-	print("isi mailbox dari henderson")
-	print(j.get_inbox('henderson'))
+	print(j.proses("sendrealm {} {} lineker halo alien" . format(tokenid, j.realm._name)))
+
+	print(j.proses("auth lineker surabaya"))
+	tokenid = sesi['tokenid']
+	print(j.proses("inbox {}" . format(tokenid)))
