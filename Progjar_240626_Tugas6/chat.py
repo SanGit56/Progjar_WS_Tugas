@@ -109,6 +109,11 @@ class Chat:
 					message = "{} {}".format(message, w)
 				logging.warning("SENDGROUPREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], group_name, realm_name))
 				return self.send_group_realm_message(sessionid, group_name, message)
+			elif (command == 'getrealminbox'):
+				sessionid = j[1].strip()
+				realm_name = j[2].strip()
+				logging.warning("GETREALMINBOX: {} from realm {}".format(sessionid, realm_name))
+				return self.get_realm_inbox(sessionid)
 			else:
 				return {'status': 'ERROR', 'message': '**Protocol Tidak Benar'}
 		except KeyError:
@@ -202,7 +207,6 @@ class Chat:
 		
 		username_from = self.sessions[sessionid]['username']
 		message = { 'msg_from': username_from, 'msg_to': username_to, 'msg': message }
-		self.realm.put(message)
 		self.realm.queue.put(message)
 		return {'status': 'OK', 'message': 'Message Sent to Realm'}
 
@@ -217,12 +221,24 @@ class Chat:
 		
 			for username_dest in pemain_bola:
 				if username_dest != username_from:
-					message = { 'msg_from': username_from, 'msg_on_group': group_name, 'msg': message }
+					notif = { 'msg_from': username_from, 'msg_on_group': group_name, 'msg': message }
 					
-					self.realm.put(message)
-					self.realm.queue.put(message)
+					self.realm.queue.put(notif)
 
 		return {'status': 'OK', 'message': 'Message Sent to Group in Realm'}
+
+	def get_realm_inbox(self, sessionid):
+		if (sessionid not in self.sessions):
+			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
+
+		print("\nUsing pprint:")
+		from pprint import pprint
+		pprint(vars(self.realm.queue))
+
+		msgs = []
+		# while not self.realm.queue.empty():
+			# msgs.append(self.realm.queue.get_nowait())
+		return {'status': 'OK', 'messages': msgs}
 
 if __name__=="__main__":
 	j = Chat()
@@ -241,3 +257,4 @@ if __name__=="__main__":
 	print(j.proses("auth henderson surabaya"))
 	tokenid = sesi['tokenid']
 	print(j.proses("inbox {}" . format(tokenid)))
+	print(j.proses("getrealminbox {} Thread_1" . format(tokenid)))

@@ -7,15 +7,15 @@
 # TARGET_IP = "127.0.0.1"
 # TARGET_PORT = 8889
 
-class ChatClient:
+# class ChatClient:
     # def __init__(self):
         # self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.server_address = (TARGET_IP,TARGET_PORT)
         # self.sock.connect(self.server_address)
         # self.tokenid=""
-    def proses(self,cmdline):
+    # def proses(self,cmdline):
         # j=cmdline.split(" ")
-        try:
+        # try:
             # command=j[0].strip()
             # if (command=='auth'):
             #     username=j[1].strip()
@@ -54,9 +54,9 @@ class ChatClient:
             #     for w in j[3:]:
             #         message="{} {}" . format(message,w)
             #     return self.send_group_realm_message(realm_id, group_usernames,message)
-            elif (command == 'getrealminbox'):
-                realm_id = j[1].strip()
-                return self.get_realm_inbox(realm_id)
+            # elif (command == 'getrealminbox'):
+            #     realm_id = j[1].strip()
+            #     return self.get_realm_inbox(realm_id)
             # else:
             #     return "*Maaf, command tidak benar"
         # except IndexError:
@@ -146,17 +146,17 @@ class ChatClient:
     #     else:
     #         return "Error {}".format(result['message'])
 
-    def get_realm_inbox(self, realm_id):
-        if (self.tokenid==""):
-            return "Error, not authorized"
-        string="getrealminbox {} {} \r\n" . format(self.tokenid, realm_id)
-        print("Sending: " + string)
-        result = self.sendstring(string)
-        print("Received: " + str(result))
-        if result['status']=='OK':
-            return "Message received from realm {}: {}".format(realm_id, result['messages'])
-        else:
-            return "Error, {}".format(result['message'])
+    # def get_realm_inbox(self, realm_id):
+    #     if (self.tokenid==""):
+    #         return "Error, not authorized"
+    #     string="getrealminbox {} {} \r\n" . format(self.tokenid, realm_id)
+    #     print("Sending: " + string)
+    #     result = self.sendstring(string)
+    #     print("Received: " + str(result))
+    #     if result['status']=='OK':
+    #         return "Message received from realm {}: {}".format(realm_id, result['messages'])
+    #     else:
+    #         return "Error, {}".format(result['message'])
 
 # if __name__=="__main__":
 #     cc = ChatClient()

@@ -32,7 +32,7 @@
 # 	def put(self, msg):
 # 		self.queue.put(msg)
 
-class Chat:
+# class Chat:
 	# def __init__(self):
 		# self.sessions={}
 		# self.users = {}
@@ -40,9 +40,9 @@ class Chat:
 		# self.users['henderson']={ 'nama': 'Jordan Henderson', 'negara': 'Inggris', 'password': 'surabaya', 'incoming': {}, 'outgoing': {}}
 		# self.users['lineker']={ 'nama': 'Gary Lineker', 'negara': 'Inggris', 'password': 'surabaya','incoming': {}, 'outgoing':{}}
 		# self.realms = {}
-	def proses(self,data):
+	# def proses(self,data):
 		# j=data.split(" ")
-		try:
+		# try:
 			# command=j[0].strip()
 			# if (command=='auth'):
 			# 	username=j[1].strip()
@@ -102,11 +102,11 @@ class Chat:
 			# 		message = "{} {}".format(message, w)
 			# 	logging.warning("SENDGROUPREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], group_usernames, realm_id))
 			# 	return self.send_group_realm_message(sessionid, realm_id, group_usernames, message)
-			elif (command == 'getrealminbox'):
-				sessionid = j[1].strip()
-				realm_id = j[2].strip()
-				logging.warning("GETREALMINBOX: {} from realm {}".format(sessionid, realm_id))
-				return self.get_realm_inbox(sessionid, realm_id)   
+			# elif (command == 'getrealminbox'):
+			# 	sessionid = j[1].strip()
+			# 	realm_id = j[2].strip()
+			# 	logging.warning("GETREALMINBOX: {} from realm {}".format(sessionid, realm_id))
+			# 	return self.get_realm_inbox(sessionid, realm_id)   
 			# else:
 			# 	return {'status': 'ERROR', 'message': '**Protocol Tidak Benar'}
 		# except KeyError:
@@ -212,16 +212,16 @@ class Chat:
 	# 		self.realms[realm_id].queue.put(message)
 	# 	return {'status': 'OK', 'message': 'Message Sent to Group in Realm'}
 
-	def get_realm_inbox(self, sessionid, realm_id):
-		if (sessionid not in self.sessions):
-			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
-		if (realm_id not in self.realms):
-			return {'status': 'ERROR', 'message': 'Realm Tidak Ada'}
-		username = self.sessions[sessionid]['username']
-		msgs = []
-		while not self.realms[realm_id].empty():
-			msgs.append(self.realms[realm_id].get_nowait())
-		return {'status': 'OK', 'messages': msgs}
+	# def get_realm_inbox(self, sessionid, realm_id):
+	# 	if (sessionid not in self.sessions):
+	# 		return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
+	# 	if (realm_id not in self.realms):
+	# 		return {'status': 'ERROR', 'message': 'Realm Tidak Ada'}
+	# 	username = self.sessions[sessionid]['username']
+	# 	msgs = []
+	# 	while not self.realms[realm_id].empty():
+	# 		msgs.append(self.realms[realm_id].get_nowait())
+	# 	return {'status': 'OK', 'messages': msgs}
 
 
 
