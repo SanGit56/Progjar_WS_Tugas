@@ -3,7 +3,8 @@ import os
 import json
 import uuid
 import logging
-from queue import  Queue
+import queue
+from queue import Queue
 import threading 
 import socket
 
@@ -12,7 +13,7 @@ class RealmCommunicationThread(threading.Thread):
 		self.chat = chat
 		self.target_realm_address = target_realm_address
 		self.target_realm_port = target_realm_port
-		self.queue = Queue()  # Queue for outgoing messages to the other realm
+		self.user_queues = {}
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		threading.Thread.__init__(self)
 	def run(self):
@@ -26,11 +27,15 @@ class RealmCommunicationThread(threading.Thread):
 				# Mengirim balasan ke realm lain
 				self.sock.sendall(json.dumps(response).encode())
 			# Check if there are messages to be sent
-			while not self.queue.empty():
-				msg = self.queue.get()
-				self.sock.sendall(json.dumps(msg).encode())
-	def put(self, msg):
-		self.queue.put(msg)
+			for user_queue in self.user_queues.items():
+				while not user_queue.empty():
+					msg = user_queue.get()
+					self.sock.sendall(json.dumps(msg).encode())
+	def put(self, user, msg):
+		if user not in self.user_queues:
+			self.user_queues[user] = queue.Queue()
+		self.user_queues[user].put(msg)
+
 
 class Chat:
 	def __init__(self):
@@ -45,19 +50,6 @@ class Chat:
 		target_realm_port = 65001
 		self.realm = RealmCommunicationThread(self, target_realm_address, target_realm_port)
 		self.realm.start()
-
-		# print("Using __dict__:")
-		# print(self.realm.__dict__)
-
-		# print("\nUsing vars():")
-		# print(vars(self.realm))
-
-		# print("\nUsing dir():")
-		# print(dir(self.realm))
-
-		# print("\nUsing pprint:")
-		# from pprint import pprint
-		# pprint(vars(self.realm))
 
 	def proses(self,data):
 		j=data.split(" ")
@@ -89,7 +81,7 @@ class Chat:
 				for m in j[3:]:
 					message="{} {}" . format(message,m)
 				usernamefrom = self.sessions[sessionid]['username']
-				logging.warning("SEND: session {} send message from {} to {}" . format(sessionid, usernamefrom,group_name))
+				logging.warning("SENDGROUP: session {} send message from {} in {}" . format(sessionid, usernamefrom,group_name))
 				return self.send_group_message(sessionid,usernamefrom,group_name,message)
 			elif (command == 'sendrealm'):
 				sessionid = j[1].strip()
@@ -98,8 +90,9 @@ class Chat:
 				message = ""
 				for w in j[4:]:
 					message = "{} {}".format(message, w)
-				logging.warning("SENDREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], usernameto, realm_name))
-				return self.send_realm_message(sessionid, usernameto, message)
+				usernamefrom = self.sessions[sessionid]['username']
+				logging.warning("SENDREALM: session {} send message from {} to {} in realm {}".format(sessionid, usernamefrom, usernameto, realm_name))
+				return self.send_realm_message(sessionid, usernamefrom, usernameto, message)
 			elif (command == 'sendgrouprealm'):
 				sessionid = j[1].strip()
 				realm_name = j[2].strip()
@@ -107,8 +100,9 @@ class Chat:
 				message = ""
 				for w in j[4:]:
 					message = "{} {}".format(message, w)
-				logging.warning("SENDGROUPREALM: session {} send message from {} to {} in realm {}".format(sessionid, self.sessions[sessionid]['username'], group_name, realm_name))
-				return self.send_group_realm_message(sessionid, group_name, message)
+				usernamefrom = self.sessions[sessionid]['username']
+				logging.warning("SENDGROUPREALM: session {} send message from {} in {} in realm {}".format(sessionid, usernamefrom, group_name, realm_name))
+				return self.send_group_realm_message(sessionid, usernamefrom, group_name, message)
 			elif (command == 'getrealminbox'):
 				sessionid = j[1].strip()
 				realm_name = j[2].strip()
@@ -199,31 +193,29 @@ class Chat:
 						inqueue_receiver[username_from]=Queue()
 						inqueue_receiver[username_from].put(notif)
 
-		return {'status': 'OK', 'message': 'Message Sent'}
+		return {'status': 'OK', 'message': 'Message Sent to Group'}
 
-	def send_realm_message(self, sessionid, username_to, message):
+	def send_realm_message(self, sessionid, username_from, username_to, message):
 		if (sessionid not in self.sessions):
 			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
 		
-		username_from = self.sessions[sessionid]['username']
-		message = { 'msg_from': username_from, 'msg_to': username_to, 'msg': message }
-		self.realm.queue.put(message)
+		msg = {'msg_from': username_from, 'msg_to': username_to, 'message': message}
+		self.realm.put(username_to, msg)
 		return {'status': 'OK', 'message': 'Message Sent to Realm'}
 
-	def send_group_realm_message(self, sessionid, group_name, message):
+	def send_group_realm_message(self, sessionid, username_from, group_name, message):
 		if sessionid not in self.sessions:
 			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
-		
-		username_from = self.sessions[sessionid]['username']
 
 		if group_name == "pemain_bola":
 			pemain_bola = ['messi', 'henderson', 'lineker']
 		
+			msg = {'msg_from': username_from, 'msg_on_group': group_name, 'message': message}
+
 			for username_dest in pemain_bola:
 				if username_dest != username_from:
-					notif = { 'msg_from': username_from, 'msg_on_group': group_name, 'msg': message }
+					self.realm.put(username_dest, msg)
 					
-					self.realm.queue.put(notif)
 
 		return {'status': 'OK', 'message': 'Message Sent to Group in Realm'}
 
@@ -231,13 +223,14 @@ class Chat:
 		if (sessionid not in self.sessions):
 			return {'status': 'ERROR', 'message': 'Session Tidak Ditemukan'}
 
-		print("\nUsing pprint:")
-		from pprint import pprint
-		pprint(vars(self.realm.queue))
-
+		username = self.sessions[sessionid]['username']
 		msgs = []
-		# while not self.realm.queue.empty():
-			# msgs.append(self.realm.queue.get_nowait())
+
+		if username in self.realm.user_queues:
+			user_queue = self.realm.user_queues[username]
+			while not user_queue.empty():
+				msgs.append(user_queue.get_nowait())
+		
 		return {'status': 'OK', 'messages': msgs}
 
 if __name__=="__main__":

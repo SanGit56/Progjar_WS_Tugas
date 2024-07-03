@@ -153,8 +153,10 @@ if __name__=="__main__":
     # auth messi surabaya
     # send henderson gimana kabar son?
     # sendgroup pemain_bola buat gol berapa?
-    # sendrealm Thread_1 henderson naturalisasi?
-    # sendgrouprealm Thread_1 pemain_bola berapa pemain asing?
+    # sendrealm Thread_1 henderson halo son
+    # sendrealm Thread_1 lineker halo lin
+    # sendgrouprealm Thread_1 pemain_bola pada main?
     # auth henderson surabaya
     # inbox
     # getrealminbox Thread_1
+    # auth lineker surabaya
